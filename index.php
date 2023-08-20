@@ -13,7 +13,9 @@
 
 	$method = $_SERVER['REQUEST_METHOD'];
 
-	var_dump($method);
+
+    include_once "classes/db.class.php";
+	include_once "api/uf/uf.php";
 
 
 
