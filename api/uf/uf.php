@@ -159,8 +159,99 @@
     }
   }
 
+  if ($method == "PUT") {
+   $req = json_decode(file_get_contents('php://input'), true);
+         //var_dump(array_values($req));
+        // var_dump($data['sigla']);
+   $db = new DB();
 
-    }
+   $conexao = $db ->connect();
+
+    $rsSigla =  $conexao->prepare("select * from tb_uf WHERE SIGLA= :sigla");
+       $rsSigla->execute(array(
+      'sigla' => $req['sigla']
+    ));
+       $resultSigla =  $rsSigla-> fetchAll();
+       //var_dump($resultSigla[0]['codigo_uf']);
+        if (is_null($req['codigoUF'])) {
+         echo json_encode(array("mensagem" => "Não foi possível atualizar uf no banco, pois o campo codigoUF é obrigatório", "status" => 404,   "nomeDoCampo" =>"codigoUF"));
+        http_response_code(404); exit;
+       
+      }
+      if (is_null($req['sigla'])) {
+         echo json_encode(array("mensagem" => "Não foi possível atualizar uf no banco, pois o campo sigla é obrigatório", "status" => 404,   "nomeDoCampo" =>"sigla"));
+        http_response_code(404); exit;
+       
+      }
+        if (is_null($req['nome'])) {
+         echo json_encode(array("mensagem" => "Não foi possível atualizar uf no banco, pois o campo nome é obrigatório", "status" => 404,   "nomeDoCampo" =>"nome"));
+        http_response_code(404); exit;
+       
+      }
+        if (is_null($req['status'])) {
+         echo json_encode(array("mensagem" => "Não foi possível atualizar uf no banco, pois o campo status é obrigatório", "status" => 404,   "nomeDoCampo" =>"status"));
+        http_response_code(404); exit;
+       
+      }
+
+
+
+
+       if ((count($resultSigla)> 0) && 
+              $resultSigla[0]['codigo_uf'] != $req['codigoUF']) {
+        echo json_encode(array("mensagem" => "Não foi possível atualizar uf no banco, pois já existe uma uf com essa mesma sigla", "status" => 404));
+        http_response_code(404); exit;
+
+      }
+          $rsNome =  $conexao->prepare("select * from tb_uf WHERE NOME= :nome");
+       $rsNome->execute(array(
+      'nome' => $req['nome']
+    ));
+       $resultNome =  $rsNome-> fetchAll();
+       //var_dump($resultSigla);
+
+       if (count($resultNome)> 0 && 
+              $resultNome[0]['codigo_uf'] != $req['codigoUF']) {
+        echo json_encode(array("mensagem" => "Não foi possível atualizar uf no banco, pois já existe uma uf com esse mesmo nome", "status" => 404));
+        http_response_code(404); exit;
+
+      }
+          
+   $rs =  $conexao->prepare("UPDATE tb_uf SET sigla = :sigla, nome = :nome, status = :status WHERE codigo_uf = :codigoUF");
+   $exec =  $rs->execute($req);
+
+   $error= $rs->errorInfo();
+      //var_dump($error);
+      //var_dump($rs->debugDumpParams());
+   if($exec){
+     $rs =  $conexao->prepare("SELECT CODIGO_UF, SIGLA, NOME, STATUS FROM TB_UF ORDER BY CODIGO_UF DESC ");
+     $rs->execute();
+     $obj =  $rs-> fetchAll(PDO::FETCH_ASSOC);
+     $result = array_map(function ($req) {
+      return [     
+        'codigoUF'       => $req['codigo_uf'],
+        'sigla'     => $req['sigla'],
+        'nome' => $req['nome'],
+        'status'    => $req['status'],
+      ];
+    }, $obj);
+     echo json_encode($result);
+
+   } else{
+    echo json_encode(array("mensagem" => "Não foi possível alterar UF no banco de dados.", "status" => 404));
+    http_response_code(404); exit;
+
+
+  }
+
+
+
+
+
+}
+
+
+}
 
 
 
