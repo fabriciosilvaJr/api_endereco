@@ -2,6 +2,7 @@
 
 
     if($api == 'uf'){
+      if (Pessoas::verificar()) {
     	if($method == "GET"){
 
           $db = new DB(); 
@@ -78,6 +79,7 @@
 
 
           }
+
 
       
        if ($method == "POST") {
@@ -292,6 +294,7 @@
 
 
     }
+  }
 
 
   }
