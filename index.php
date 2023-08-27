@@ -26,6 +26,11 @@
 	$rota -> add('PUT', '/uf' , 'UF::alterar',true);
 	$rota -> add('DELETE', '/uf/[PARAM]', 'UF::deletar', true);
 	$rota->add('GET', '/municipio', 'Municipios::listar', true);
+	$rota->add('POST', '/municipio', 'Municipios::adicionar', true);
+    $rota->add('PUT', '/municipio', 'Municipios::alterar', true);
+    $rota -> add('DELETE', '/municipio/[PARAM]', 'Municipios::deletar', true);
+
+
 	$rota -> ir($_GET['path']);
 
 

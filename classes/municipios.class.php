@@ -1,6 +1,10 @@
 <?php 
 	class Municipios {
 
+     function teste(){
+       echo "teste";
+     }
+
 
 
         public function listar (){
@@ -48,7 +52,7 @@
            $error= $rs->errorInfo();
 
               if($error[0] !="00000" ){
-                  echo json_encode(array("mensagem" => "Não foi possível consultar UF no banco de dados.", "status" => 404));
+                  echo json_encode(array("mensagem" => "Não foi possível consultar MUnicipio no banco de dados.", "status" => 404));
                   http_response_code(404); exit;
 
              }
@@ -101,10 +105,137 @@
 
                 } 
 
+        }
 
+        public function adicionar(){
+        	$req = json_decode(file_get_contents('php://input'), true);
+        	$db = new DB();
+        	$conexao = $db ->connect();
+
+          $rsUF =  $conexao->prepare("select * from tb_uf WHERE codigo_uf = :codigoUF");
+          $rsUF->execute(array(
+            'codigoUF' => $req['codigoUF']
+          ));
+          $resultUF =  $rsUF -> fetchAll();
+
+          if (count($resultUF)== 0) {
+            echo json_encode(array("mensagem" => "Não foi possível incluir Municipio no banco, pois ainda não existe uma uf cadastrada para esse código", "status" => 404));
+            http_response_code(404); exit;
+
+          }
+          $rsNome =  $conexao->prepare("select * from tb_municipio WHERE NOME= :nome");
+          $rsNome->execute(array(
+            'nome' => $req['nome']
+          ));
+          $resultNome =  $rsNome-> fetchAll();
+           //var_dump($resultSigla);
+
+          if (count($resultNome)> 0) {
+            echo json_encode(array("mensagem" => "Não foi possível incluir muicipio no banco, pois já existe um municipio com esse mesmo nome", "status" => 404));
+            http_response_code(404); exit;
+
+          }
+
+
+          if (is_null($req['codigoUF'])) {
+           echo json_encode(array("mensagem" => "Não foi possível incluir municipio no banco, pois o campo codigoUF é obrigatório", "status" => 404,   "nomeDoCampo" =>"codigoUF"));
+           http_response_code(404); exit;
+           
+         }
+         if (is_null($req['nome'])) {
+           echo json_encode(array("mensagem" => "Não foi possível incluir municipio no banco, pois o campo nome é obrigatório", "status" => 404,   "nomeDoCampo" =>"nome"));
+           http_response_code(404); exit;
+           
+         }
+         if (is_null($req['status'])) {
+           echo json_encode(array("mensagem" => "Não foi possível incluir municipio no banco, pois o campo status é obrigatório", "status" => 404,   "nomeDoCampo" =>"status"));
+           http_response_code(404); exit;
+           
+         }
+
+         $rs =  $conexao->prepare("INSERT INTO tb_municipio (codigo_municipio, codigo_uf,  nome, status) Values (nextval('sequence_municipio'), :codigoUF, :nome, :status)");
+
+         $exec =  $rs->execute($req);
+         $error= $rs->errorInfo();
+        	  //var_dump($error);
+
+         if($exec){
+           $municipios = new Municipios();
+           $municipios ->listar();
+
+        } else{
+          echo json_encode(array("mensagem" => "Não foi possível incluir MUnicipio no banco de dados.", "status" => 404));
+          http_response_code(404); exit;
 
 
         }
+
+      }
+
+      public function alterar(){
+        $req = json_decode(file_get_contents('php://input'), true);
+                 //var_dump(array_values($req));
+                // var_dump($data['sigla']);
+        $db = new DB();
+
+        $conexao = $db ->connect();
+
+        $rs =  $conexao->prepare("UPDATE tb_municipio set codigo_uf = :codigoUF, nome= :nome, status= :status WHERE codigo_municipio = :codigoMunicipio ");
+        $exec =  $rs->execute($req);
+
+        $error= $rs->errorInfo();
+          //var_dump($error);
+          //var_dump($rs->debugDumpParams());
+        if($exec){
+         $municipios = new Municipios();
+         $municipios ->listar();
+         
+
+       } else{
+        echo json_encode(array("mensagem" => "Não foi possível alterar municipio no banco de dados.", "status" => 404));
+        http_response_code(404); exit;
+
+
+      }
+
+    }
+
+    public function deletar($param){
+      $db = new DB();
+      $conexao = $db ->connect();
+      $rs =  $conexao->prepare("select * from tb_municipio where codigo_municipio = :codigoMunicipio");
+      $rs->execute(array(
+        'codigoMunicipio' => $param
+      ));
+      $verificaMP =  $rs-> fetchAll(PDO::FETCH_ASSOC);
+      //var_dump($verificaMP);
+       //var_dump($verificaUF);
+
+      if (count($verificaMP) > 0) {
+        $rs =  $conexao->prepare("UPDATE tb_municipio set status = 2 WHERE codigo_municipio = :codigoMunicipio");
+        $exec =  $rs->execute(array(
+          'codigoMunicipio' => $param
+        ));
+        if($exec){
+          $municipios = new Municipios();
+          $municipios ->listar();
+
+
+        } else{
+          echo json_encode(array("mensagem" => "Não foi possível desativar Municipio no banco de dados.", "status" => 404));
+          http_response_code(404); exit;
+
+
+        }
+
+
+      } else{
+        echo json_encode(array("mensagem" => "Não foi possível encontrar um municipio com o código informado.", "status" => 404));
+        http_response_code(404); exit;
+      }
+
+    }
+
 
 	}
 
