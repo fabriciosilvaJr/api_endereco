@@ -29,6 +29,10 @@
 	$rota->add('POST', '/municipio', 'Municipios::adicionar', true);
     $rota->add('PUT', '/municipio', 'Municipios::alterar', true);
     $rota -> add('DELETE', '/municipio/[PARAM]', 'Municipios::deletar', true);
+    $rota->add('GET', '/bairro', 'Bairros::listar', true);
+    $rota->add('POST', '/bairro', 'Bairros::adicionar', true);
+    $rota->add('PUT', '/bairro', 'Bairros::alterar', true);
+    $rota -> add('DELETE', '/bairro/[PARAM]', 'Bairros::deletar', true);
 
 
 	$rota -> ir($_GET['path']);

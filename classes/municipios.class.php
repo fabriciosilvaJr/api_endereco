@@ -1,10 +1,6 @@
 <?php 
 	class Municipios {
 
-     function teste(){
-       echo "teste";
-     }
-
 
 
         public function listar (){
@@ -179,6 +175,29 @@
         $db = new DB();
 
         $conexao = $db ->connect();
+
+          if (is_null($req['codigoUF'])) {
+           echo json_encode(array("mensagem" => "Não foi possível alterar municipio no banco, pois o campo codigoUF é obrigatório", "status" => 404,   "nomeDoCampo" =>"codigoUF"));
+           http_response_code(404); exit;
+           
+         }
+
+
+         if (is_null($req['codigoMunicipio'])) {
+             echo json_encode(array("mensagem" => "Não foi possível alterar municipio no banco, pois o campo codigoMunicipio é obrigatório", "status" => 404,   "nomeDoCampo" =>"codigoMunicipio"));
+            http_response_code(404); exit;
+           
+          }
+            if (is_null($req['nome'])) {
+             echo json_encode(array("mensagem" => "Não foi possível alterar municipio no banco, pois o campo nome é obrigatório", "status" => 404,   "nomeDoCampo" =>"nome"));
+            http_response_code(404); exit;
+           
+          }
+            if (is_null($req['status'])) {
+             echo json_encode(array("mensagem" => "Não foi possível alterar municipio no banco, pois o campo status é obrigatório", "status" => 404,   "nomeDoCampo" =>"status"));
+            http_response_code(404); exit;
+           
+          }
 
         $rs =  $conexao->prepare("UPDATE tb_municipio set codigo_uf = :codigoUF, nome= :nome, status= :status WHERE codigo_municipio = :codigoMunicipio ");
         $exec =  $rs->execute($req);
