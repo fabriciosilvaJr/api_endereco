@@ -79,6 +79,7 @@
 
 		public function naoExiste()
 		{
+            echo json_encode(array("mensagem" => "Não foi possível encontrar a rota.", "status" => 404));
 			http_response_code(404);
 		}
 

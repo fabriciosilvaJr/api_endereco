@@ -80,13 +80,15 @@
                     ];
 
                     echo json_encode($umRegistro);
+                    exit;
+
 
 
                   } 
                   
                 }else if(!is_null($parametros['status'])){
                   echo json_encode($result);
-
+                  exit;
                 }
 
 

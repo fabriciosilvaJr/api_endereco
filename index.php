@@ -25,6 +25,7 @@
 	$rota -> add('POST', '/uf' , 'UF::adicionar',true);
 	$rota -> add('PUT', '/uf' , 'UF::alterar',true);
 	$rota -> add('DELETE', '/uf/[PARAM]', 'UF::deletar', true);
+	$rota->add('GET', '/municipio', 'Municipios::listar', true);
 	$rota -> ir($_GET['path']);
 
 
