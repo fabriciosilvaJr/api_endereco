@@ -2,14 +2,40 @@
 
     class Pessoas
     {
-        public static function login($login, $senha)
+
+    
+
+        public function listar (){
+
+        }
+
+        public function adicionar(){
+
+        }
+
+        public function  alterar(){
+
+        }
+
+        public function deletar(){
+
+        }
+
+
+
+
+        public function login()
+
         {
-            if ($login) {
-                if (!$login OR !$senha) {
+            $req = json_decode(file_get_contents('php://input'), true);
+
+            if ($req) {
+                if (!$req['login'] OR !$req['senha']) {
                     echo json_encode(['ERRO' => 'Falta informacoes!']); exit; 
                 } else {
-                    // $login = addslashes(htmlspecialchars($_POST['login'])) ?? '';
-                    // $senha = addslashes(htmlspecialchars($_POST['senha'])) ?? '';
+                    $login = $req['login'];
+                    $senha = $req['senha'];
+
                      $secretJWT = $GLOBALS['secretJWT'];
 
 
@@ -50,7 +76,7 @@
                         echo json_encode(['token' => $token, 'data' => JWT::decode($token, $secretJWT)]);
                     } else {
                         if (!$validPassword) {  
-                             echo json_encode(array("mensagem" => "Senha inválida", "status" => 404));
+                             echo json_encode(array("mensagem" => "Login ou Senha inválida", "status" => 404));
                             http_response_code(404); exit;
 
                         }
