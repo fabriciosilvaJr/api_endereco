@@ -107,7 +107,6 @@
         	$req = json_decode(file_get_contents('php://input'), true);
         	$db = new DB();
         	$conexao = $db ->connect();
-
           $rsUF =  $conexao->prepare("select * from tb_uf WHERE codigo_uf = :codigoUF");
           $rsUF->execute(array(
             'codigoUF' => $req['codigoUF']
