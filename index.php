@@ -45,6 +45,8 @@ $rota -> add('DELETE', '/bairro/[PARAM]', 'Bairros::deletar', true);
 $rota->add('GET', '/pessoa', 'Pessoas::listar', true);
 $rota->add('POST', '/pessoa', 'Pessoas::adicionar', true);
 $rota->add('PUT', '/pessoa', 'Pessoas::alterar', true);
+$rota -> add('DELETE', '/pessoa/[PARAM]', 'Pessoas::deletar', true);
+
 
 
 

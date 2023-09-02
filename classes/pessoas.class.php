@@ -372,7 +372,7 @@ public function  alterar(){
 
 } catch (PDOException $e) {
   $conexao->rollback();
-  print "Error!: " . $e->getMessage() . "</br>";
+  //print "Error!: " . $e->getMessage() . "</br>";
   echo json_encode(array("mensagem" => "Não foi possível alterar Pessoa no banco de dados.", "status" => 404));
   http_response_code(404); 
 
@@ -381,7 +381,47 @@ public function  alterar(){
 
 }
 
-public function deletar(){
+public function deletar($param){
+    try {
+        $db = new DB();
+        $conexao = $db ->connect();
+        $conexao->beginTransaction(); 
+        $rs =  $conexao->prepare("Select * from tb_pessoa where codigo_pessoa = :codigoPessoa");
+        $rs->execute(array(
+            'codigoPessoa' => $param
+        ));
+        $verificaPessoa =  $rs-> fetchAll(PDO::FETCH_ASSOC);
+        if (count($verificaPessoa) > 0) {
+            $rs =  $conexao->prepare("DELETE FROM TB_ENDERECO WHERE CODIGO_PESSOA = :codigoPessoa");
+            $exec =  $rs->execute(array(
+                'codigoPessoa' => $param 
+            ));
+
+            if ($exec) {
+               $rsP =  $conexao->prepare("DELETE FROM tb_pessoa WHERE CODIGO_PESSOA = :codigoPessoa");
+               $exec =  $rsP->execute(array(
+                'codigoPessoa' => $param 
+            ));
+
+               $conexao->commit();
+               $pessoas = new Pessoas();
+               $pessoas ->listar();
+
+
+           }
+
+       } else{
+          echo json_encode(array("mensagem" => "Não foi possível encontrar uma pessoa com o código informado.", "status" => 404));
+                http_response_code(404); exit;
+       }
+
+   } catch (PDOException $e) {
+      $conexao->rollback();
+      //print "Error!: " . $e->getMessage() . "</br>";
+      echo json_encode(array("mensagem" => "Não foi possível alterar Pessoa no banco de dados.", "status" => 404));
+      http_response_code(404); 
+
+  }
 
 }
 
