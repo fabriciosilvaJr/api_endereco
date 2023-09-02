@@ -239,7 +239,7 @@ public function adicionar(){
 
 }
 
-public function  alterar(){
+public function alterar(){
 
     try {
         $req = json_decode(file_get_contents('php://input'), true);
