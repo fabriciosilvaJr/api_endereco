@@ -241,6 +241,144 @@ public function adicionar(){
 
 public function  alterar(){
 
+    try {
+        $req = json_decode(file_get_contents('php://input'), true);
+        $db = new DB();
+        $conexao = $db ->connect();
+        $conexao->beginTransaction(); 
+
+        // Aatualizando pessoas no banco de dados
+        $rs =  $conexao->prepare("UPDATE tb_pessoa set nome = :nome, sobrenome= :sobrenome, idade = :idade, login = :login, senha= :senha, status= :status WHERE codigo_pessoa = :codigoPessoa");
+
+        $exec =  $rs->execute(array(
+            'nome' => $req['nome'],
+            'sobrenome' => $req['sobrenome'],
+            'idade' => $req['idade'],
+            'login' => $req['login'],
+            'senha' => $req['senha'],
+            'status' => $req['status'],
+            'codigoPessoa' => $req['codigoPessoa'],
+
+
+        ));
+
+        $rsEd =  $conexao->prepare("SELECT * FROM tb_endereco  where codigo_pessoa= :codigoPessoa");
+        $execEd = $rsEd->execute(array(
+            'codigoPessoa' => $req['codigoPessoa'],
+        )); 
+        $obj =  $rsEd-> fetchAll(PDO::FETCH_ASSOC);
+
+        $pessoaByid = array_map(function ($data) {
+          return [     
+            'codigoEndereco'       => $data['codigo_endereco'],
+            'codigoPessoa'     => $data['codigo_pessoa'],
+            'codigoBairro' => $data['codigo_bairro'],
+            'nomeRua'    => $data['nome_rua'],
+            'numero'    => $data['numero'],
+            'complemento'    => $data['complemento'],
+            'cep'    => $data['cep'],
+        ];
+    }, $obj);
+
+
+        function getDiferenca($array1, $array2) {
+            return array_filter($array1, function($object1) use ($array2) {
+                return !array_reduce($array2, function($carry, $object2) use ($object1) {
+                    return $carry || ($object1['codigoEndereco'] === $object2['codigoEndereco']);
+                }, false);
+            });
+        }
+       // Deletando endereço que não foi passado na atualização
+        $diferenca =  getDiferenca($pessoaByid, $req['enderecos']);
+
+        if (count($diferenca) > 0) {
+            foreach ($diferenca as $u) {
+                $codigoEndereco = $u['codigoEndereco'];
+                $query = "DELETE FROM tb_endereco WHERE codigo_endereco = :codigoEndereco";
+                $stmt = $conexao->prepare($query);
+                $stmt->bindParam(':codigoEndereco', $codigoEndereco, PDO::PARAM_INT);
+                $stmt->execute();
+            }
+
+
+        }
+
+       // Adicionando endereço que não foi passado o codigoEndereco na atualização
+
+        $adicionar = array();
+        foreach ($req['enderecos'] as $endereco) {
+            if ($endereco['codigoEndereco'] === null) {
+                $adicionar[] = $endereco;
+            }
+        }
+
+        if (count($adicionar) > 0) {
+
+            $query = "INSERT INTO tb_endereco (codigo_endereco, codigo_pessoa, codigo_bairro, nome_rua, numero, complemento, cep)
+            VALUES (nextval('sequence_endereco'), :codigoPessoa, :codigoBairro, :nomeRua, :numero, :complemento, :cep)";
+
+            $rs = $conexao->prepare($query);
+            foreach ($adicionar as $add) {
+
+             $exec= $rs->execute($add); 
+
+         }
+     }
+
+
+   // Atualizando endereços que foi passado o cddigoEndreço
+
+     $enderecos = array();
+     foreach ($req['enderecos'] as $endereco) {
+        if ($endereco['codigoEndereco'] !== null) {
+            $enderecos[] = $endereco;
+        }
+    }
+
+    if (count($enderecos) > 0) {
+
+        $queryEndereco = "UPDATE tb_endereco 
+        SET codigo_pessoa = :codigoPessoa, codigo_bairro = :codigoBairro, nome_rua = :nomeRua, numero = :numero, complemento = :complemento, cep = :cep 
+        WHERE codigo_endereco = :codigoEndereco";
+
+
+        for ($i = 0; $i < count($enderecos); $i++) {
+
+
+            $rs = $conexao->prepare($queryEndereco);
+            $rs->execute(
+                array(
+                    'codigoPessoa' => $enderecos[$i]['codigoPessoa'],
+                    'codigoBairro' => $enderecos[$i]['codigoBairro'],
+                    'nomeRua' => $enderecos[$i]['nomeRua'],
+                    'numero' => $enderecos[$i]['numero'],
+                    'complemento' => $enderecos[$i]['complemento'],
+                    'cep' => $enderecos[$i]['cep'],
+                    'codigoEndereco' => $enderecos[$i]['codigoEndereco'],
+
+
+                )
+
+            );
+        }
+        $conexao->commit();
+        $pessoas = new Pessoas();
+        $pessoas ->listar();
+
+
+    }
+
+
+
+} catch (PDOException $e) {
+  $conexao->rollback();
+  print "Error!: " . $e->getMessage() . "</br>";
+  echo json_encode(array("mensagem" => "Não foi possível alterar Pessoa no banco de dados.", "status" => 404));
+  http_response_code(404); 
+
+
+}
+
 }
 
 public function deletar(){
