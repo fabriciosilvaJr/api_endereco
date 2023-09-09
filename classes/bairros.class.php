@@ -3,11 +3,12 @@
 	class Bairros{
 
 		public function listar(){
+			try {
 
-			$db = new DB(); 
-			parse_str($_SERVER['QUERY_STRING'], $parameters);
-			$bairros = new Bairros();
-			$recursos = $bairros -> gerarSQLConsultarListar($parameters);
+				$db = new DB(); 
+				parse_str($_SERVER['QUERY_STRING'], $parameters);
+				$bairros = new Bairros();
+				$recursos = $bairros -> gerarSQLConsultarListar($parameters);
 		    $sql = $recursos[0]; //sql
 		    $parametros  = $recursos[1]; 
              //var_dump($recursos);
@@ -15,11 +16,6 @@
 		    $rs->execute($parametros);
 		    $error= $rs->errorInfo();
 
-		    if($error[0] !="00000" ){
-		    	echo json_encode(array("mensagem" => "Não foi possível consultar MUnicipio no banco de dados.", "status" => 404));
-		    	http_response_code(404); exit;
-
-		    }
 		    $obj =  $rs-> fetchAll(PDO::FETCH_ASSOC);
 		    $result = array_map(function ($data) {
 		    	return [     
@@ -63,58 +59,79 @@
 
 		    } 
 
+		  } catch (PDOException $e) {
+				    //print "Error!: " . $e->getMessage() . "</br>";
+		  	echo json_encode(array("mensagem" => "Não foi possível consultar Bairro no banco de dados.", "status" => 404));
+		  	http_response_code(404); 
+
+
+		  }
+
+
+
 		}
+
 		public function adicionar(){
-			$req = json_decode(file_get_contents('php://input'), true);
-			$db = new DB();
-			$conexao = $db ->connect();
+			try {
+
+				$req = json_decode(file_get_contents('php://input'), true);
+				$db = new DB();
+				$conexao = $db ->connect();
 
 
-			if (is_null($req['codigoMunicipio'])) {
-				echo json_encode(array("mensagem" => "Não foi possível incluir bairro no banco, pois o campo codigoMunicipio é obrigatório", "status" => 404,   "nomeDoCampo" =>"codigoMunicipio"));
-				http_response_code(404); exit;
+				if (is_null($req['codigoMunicipio'])) {
+					echo json_encode(array("mensagem" => "Não foi possível incluir bairro no banco, pois o campo codigoMunicipio é obrigatório", "status" => 404,   "nomeDoCampo" =>"codigoMunicipio"));
+					http_response_code(404); exit;
 
-			}
-			if (is_null($req['nome'])) {
-				echo json_encode(array("mensagem" => "Não foi possível incluir bairro no banco, pois o campo nome é obrigatório", "status" => 404,   "nomeDoCampo" =>"nome"));
-				http_response_code(404); exit;
+				}
+				if (is_null($req['nome'])) {
+					echo json_encode(array("mensagem" => "Não foi possível incluir bairro no banco, pois o campo nome é obrigatório", "status" => 404,   "nomeDoCampo" =>"nome"));
+					http_response_code(404); exit;
 
-			}
-			if (is_null($req['status'])) {
-				echo json_encode(array("mensagem" => "Não foi possível incluir bairro no banco, pois o campo status é obrigatório", "status" => 404,   "nomeDoCampo" =>"status"));
-				http_response_code(404); exit;
+				}
+				if (is_null($req['status'])) {
+					echo json_encode(array("mensagem" => "Não foi possível incluir bairro no banco, pois o campo status é obrigatório", "status" => 404,   "nomeDoCampo" =>"status"));
+					http_response_code(404); exit;
 
-			}
+				}
 
-		  $rsMP =  $conexao->prepare("select * from tb_municipio WHERE codigo_municipio = :codigoMunicipio");
-          $rsMP->execute(array(
-            'codigoMunicipio' => $req['codigoMunicipio']
-          ));
-          $resultMP =  $rsMP -> fetchAll();
+				$rsMP =  $conexao->prepare("select * from tb_municipio WHERE codigo_municipio = :codigoMunicipio");
+				$rsMP->execute(array(
+					'codigoMunicipio' => $req['codigoMunicipio']
+				));
+				$resultMP =  $rsMP -> fetchAll();
 
-          if (count($resultMP)== 0) {
-            echo json_encode(array("mensagem" => "Não foi possível incluir bairro no banco, pois ainda não existe um municipio cadastrado com esse código", "status" => 404));
-            http_response_code(404); exit;
+				if (count($resultMP)== 0) {
+					echo json_encode(array("mensagem" => "Não foi possível incluir bairro no banco, pois ainda não existe um municipio cadastrado com esse código", "status" => 404));
+					http_response_code(404); exit;
 
-          }
+				}
 
-			$rs =  $conexao->prepare("INSERT INTO tb_bairro (codigo_bairro,codigo_municipio, nome, status) Values (nextval('sequence_bairro'), :codigoMunicipio, :nome, :status)");
+				$rs =  $conexao->prepare("INSERT INTO tb_bairro (codigo_bairro,codigo_municipio, nome, status) Values (nextval('sequence_bairro'), :codigoMunicipio, :nome, :status)");
 
 
-			$exec =  $rs->execute($req);
-			$error= $rs->errorInfo();
+				$exec =  $rs->execute($req);
+				$error= $rs->errorInfo();
         	  //var_dump($error);
 
-			if($exec){
-				$bairros = new Bairros();
-				$bairros ->listar();
+				if($exec){
+					$bairros = new Bairros();
+					$bairros ->listar();
 
-			} else{
+				} else{
+					echo json_encode(array("mensagem" => "Não foi possível incluir Bairro no banco de dados.", "status" => 404));
+					http_response_code(404); exit;
+
+
+				}
+				
+			} catch (PDOException $e) {
+				  //print "Error!: " . $e->getMessage() . "</br>";
 				echo json_encode(array("mensagem" => "Não foi possível incluir Bairro no banco de dados.", "status" => 404));
-				http_response_code(404); exit;
-
-
+				http_response_code(404); 
+				
 			}
+
 
 		}
 
